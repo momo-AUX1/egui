@@ -1759,7 +1759,7 @@ pub fn create_winit_window_attributes(
         }
     }
 
-    #[cfg(target_os = "windows")]
+    #[cfg(all(target_os = "windows", not(__WINRT__)))]
     {
         use winit::platform::windows::WindowAttributesExtWindows as _;
         if let Some(enable) = _drag_and_drop {

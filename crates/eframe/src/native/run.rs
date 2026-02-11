@@ -42,7 +42,7 @@ fn create_event_loop(native_options: &mut epi::NativeOptions) -> Result<EventLoo
 ///
 /// We reuse the event-loop so we can support closing and opening an eframe window
 /// multiple times. This is just a limitation of winit.
-#[cfg(not(target_os = "ios"))]
+#[cfg(all(not(target_os = "ios"), not(__WINRT__)))]
 fn with_event_loop<R>(
     mut native_options: epi::NativeOptions,
     f: impl FnOnce(&mut EventLoop, epi::NativeOptions) -> R,
@@ -323,7 +323,7 @@ impl<T: WinitApp> ApplicationHandler for WinitAppWrapper<T> {
     }
 }
 
-#[cfg(not(target_os = "ios"))]
+#[cfg(all(not(target_os = "ios"), not(__WINRT__)))]
 fn run_and_return(event_loop: &mut EventLoop, winit_app: impl WinitApp) -> Result {
     use winit_core::event_loop::run_on_demand::EventLoopExtRunOnDemand as _;
 
@@ -362,7 +362,7 @@ pub fn run_glow(
 
     use super::glow_integration::GlowWinitApp;
 
-    #[cfg(not(target_os = "ios"))]
+    #[cfg(all(not(target_os = "ios"), not(__WINRT__)))]
     if native_options.run_and_return {
         return with_event_loop(native_options, |event_loop, native_options| {
             let glow_eframe = GlowWinitApp::new(event_loop, app_name, native_options, app_creator);
@@ -400,7 +400,7 @@ pub fn run_wgpu(
 
     use super::wgpu_integration::WgpuWinitApp;
 
-    #[cfg(not(target_os = "ios"))]
+    #[cfg(all(not(target_os = "ios"), not(__WINRT__)))]
     if native_options.run_and_return {
         return with_event_loop(native_options, |event_loop, native_options| {
             let wgpu_eframe = WgpuWinitApp::new(event_loop, app_name, native_options, app_creator);
@@ -505,7 +505,7 @@ impl<'a> EframeWinitApplication<'a> {
     ///
     /// This is useful when your [`EventLoop`] is not the main event loop for your application.
     /// See the `external_eventloop_async` example.
-    #[cfg(not(target_os = "ios"))]
+    #[cfg(all(not(target_os = "ios"), not(__WINRT__)))]
     pub fn pump_eframe_app(
         &mut self,
         event_loop: &mut EventLoop,
@@ -523,7 +523,7 @@ impl<'a> EframeWinitApplication<'a> {
 /// Either an exit code or a [`ControlFlow`] from the [`ActiveEventLoop`].
 ///
 /// The result of [`EframeWinitApplication::pump_eframe_app`].
-#[cfg(not(target_os = "ios"))]
+#[cfg(all(not(target_os = "ios"), not(__WINRT__)))]
 pub enum EframePumpStatus {
     /// The final state of the [`ControlFlow`] after all events have been dispatched
     ///

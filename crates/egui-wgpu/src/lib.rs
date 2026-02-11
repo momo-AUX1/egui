@@ -187,7 +187,7 @@ impl RenderState {
                 wgpu::Backends::all()
             };
 
-            instance.enumerate_adapters(backends)
+            instance.enumerate_adapters(backends).await
         };
 
         let (adapter, device, queue) = match config.wgpu_setup.clone() {
@@ -397,6 +397,7 @@ pub fn adapter_info_summary(info: &wgpu::AdapterInfo) -> String {
         driver,
         driver_info,
         backend,
+        ..
     } = &info;
 
     // Example values:

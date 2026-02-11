@@ -65,8 +65,16 @@ impl WgpuSetup {
                 }
 
                 log::debug!("Creating wgpu instance with backends {backends:?}");
-                wgpu::util::new_instance_with_webgpu_detection(&create_new.instance_descriptor)
-                    .await
+                let instance_descriptor = wgpu::InstanceDescriptor {
+                    backends: create_new.instance_descriptor.backends,
+                    flags: create_new.instance_descriptor.flags,
+                    memory_budget_thresholds: create_new
+                        .instance_descriptor
+                        .memory_budget_thresholds,
+                    backend_options: create_new.instance_descriptor.backend_options.clone(),
+                    display: None,
+                };
+                wgpu::util::new_instance_with_webgpu_detection(instance_descriptor).await
             }
             Self::Existing(existing) => existing.instance.clone(),
         }
@@ -131,7 +139,13 @@ pub struct WgpuSetupCreateNew {
 impl Clone for WgpuSetupCreateNew {
     fn clone(&self) -> Self {
         Self {
-            instance_descriptor: self.instance_descriptor.clone(),
+            instance_descriptor: wgpu::InstanceDescriptor {
+                backends: self.instance_descriptor.backends,
+                flags: self.instance_descriptor.flags,
+                memory_budget_thresholds: self.instance_descriptor.memory_budget_thresholds,
+                backend_options: self.instance_descriptor.backend_options.clone(),
+                display: None,
+            },
             power_preference: self.power_preference,
             native_adapter_selector: self.native_adapter_selector.clone(),
             device_descriptor: self.device_descriptor.clone(),
@@ -163,6 +177,7 @@ impl Default for WgpuSetupCreateNew {
                 flags: wgpu::InstanceFlags::from_build_config().with_env(),
                 backend_options: wgpu::BackendOptions::from_env_or_default(),
                 memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
+                display: None,
             },
 
             power_preference: wgpu::PowerPreference::from_env()
