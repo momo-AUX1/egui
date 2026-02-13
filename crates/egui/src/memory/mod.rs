@@ -21,7 +21,7 @@ pub use theme::{Theme, ThemePreference};
 /// how far the user has scrolled in a [`ScrollArea`](crate::ScrollArea) etc.
 ///
 /// If you want this to persist when closing your app, you should serialize [`Memory`] and store it.
-/// For this you need to enable the `persistence`.
+/// For this you need to enable the `persistence` feature.
 ///
 /// If you want to store data for your widgets, you should look at [`Memory::data`]
 #[derive(Clone, Debug)]
@@ -68,7 +68,7 @@ pub struct Memory {
     /// # let mut ctx = egui::Context::default();
     /// ctx.memory_mut(|mem| {
     ///     let cache = mem.caches.cache::<CharCountCache<'_>>();
-    ///     assert_eq!(cache.get("hello"), 5);
+    ///     assert_eq!(*cache.get("hello"), 5);
     /// });
     /// ```
     #[cfg_attr(feature = "persistence", serde(skip))]
@@ -306,6 +306,8 @@ impl Default for Options {
             zoom_with_keyboard: true,
             tessellation_options: Default::default(),
             repaint_on_widget_change: false,
+
+            #[expect(clippy::unwrap_used)]
             max_passes: NonZeroUsize::new(2).unwrap(),
             screen_reader: false,
             warn_on_id_clash: cfg!(debug_assertions),
@@ -545,22 +547,19 @@ impl Focus {
                     ..
                 } = event
                 && let Some(cardinality) = match key {
-                    crate::Key::ArrowUp => Some(FocusDirection::Up),
-                    crate::Key::ArrowRight => Some(FocusDirection::Right),
-                    crate::Key::ArrowDown => Some(FocusDirection::Down),
-                    crate::Key::ArrowLeft => Some(FocusDirection::Left),
+                    crate::Key::ArrowUp if !modifiers.any() => Some(FocusDirection::Up),
+                    crate::Key::ArrowRight if !modifiers.any() => Some(FocusDirection::Right),
+                    crate::Key::ArrowDown if !modifiers.any() => Some(FocusDirection::Down),
+                    crate::Key::ArrowLeft if !modifiers.any() => Some(FocusDirection::Left),
 
-                    crate::Key::Tab => {
-                        if modifiers.shift {
-                            Some(FocusDirection::Previous)
-                        } else {
-                            Some(FocusDirection::Next)
-                        }
-                    }
-                    crate::Key::Escape => {
+                    crate::Key::Tab if !modifiers.any() => Some(FocusDirection::Next),
+                    crate::Key::Tab if modifiers.shift_only() => Some(FocusDirection::Previous),
+
+                    crate::Key::Escape if !modifiers.any() => {
                         self.focused_widget = None;
                         Some(FocusDirection::None)
                     }
+
                     _ => None,
                 }
             {

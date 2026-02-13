@@ -48,7 +48,7 @@ impl WgpuSetup {
     pub async fn new_instance(&self) -> wgpu::Instance {
         match self {
             Self::CreateNew(create_new) => {
-                #[allow(unused_mut, clippy::allow_attributes)]
+                #[allow(clippy::allow_attributes, unused_mut)]
                 let mut backends = create_new.instance_descriptor.backends;
 
                 // Don't try WebGPU if we're not in a secure context.
@@ -148,7 +148,7 @@ impl Clone for WgpuSetupCreateNew {
             },
             power_preference: self.power_preference,
             native_adapter_selector: self.native_adapter_selector.clone(),
-            device_descriptor: self.device_descriptor.clone(),
+            device_descriptor: Arc::clone(&self.device_descriptor),
         }
     }
 }
