@@ -13,7 +13,7 @@ use std::ops::Deref;
 #[cfg(feature = "accesskit")]
 pub use accesskit_winit;
 pub use egui;
-#[cfg(feature = "accesskit")]
+#[cfg(all(feature = "accesskit", not(all(target_os = "windows", __WINRT__))))]
 use egui::accesskit;
 use egui::{Pos2, Rect, Theme, Vec2, ViewportBuilder, ViewportCommand, ViewportId, ViewportInfo};
 pub use winit;
@@ -102,7 +102,7 @@ pub struct State {
     /// track ime state
     has_sent_ime_enabled: bool,
 
-    #[cfg(feature = "accesskit")]
+    #[cfg(all(feature = "accesskit", not(all(target_os = "windows", __WINRT__))))]
     accesskit: Option<accesskit_winit::Adapter>,
 
     allow_ime: bool,
@@ -144,7 +144,7 @@ impl State {
 
             has_sent_ime_enabled: false,
 
-            #[cfg(feature = "accesskit")]
+            #[cfg(all(feature = "accesskit", not(all(target_os = "windows", __WINRT__))))]
             accesskit: None,
 
             allow_ime: false,
@@ -164,7 +164,7 @@ impl State {
         slf
     }
 
-    #[cfg(feature = "accesskit")]
+    #[cfg(all(feature = "accesskit", not(all(target_os = "windows", __WINRT__))))]
     pub fn init_accesskit<T: From<accesskit_winit::Event> + Send>(
         &mut self,
         event_loop: &dyn ActiveEventLoop,
@@ -178,6 +178,16 @@ impl State {
             window,
             event_loop_proxy,
         ));
+    }
+
+    #[cfg(all(feature = "accesskit", target_os = "windows", __WINRT__))]
+    pub fn init_accesskit<T: From<accesskit_winit::Event> + Send>(
+        &mut self,
+        _event_loop: &dyn ActiveEventLoop,
+        _window: &dyn Window,
+        _event_loop_proxy: winit::event_loop::EventLoopProxy,
+    ) {
+        // AccessKit is intentionally a no-op on WinRT.
     }
 
     /// Call this once a graphics context has been created to update the maximum texture dimensions
@@ -270,7 +280,7 @@ impl State {
     ) -> EventResponse {
         profiling::function_scope!(short_window_event_description(event));
 
-        #[cfg(feature = "accesskit")]
+        #[cfg(all(feature = "accesskit", not(all(target_os = "windows", __WINRT__))))]
         if let Some(accesskit) = self.accesskit.as_mut() {
             accesskit.process_event(window, event);
         }
@@ -661,11 +671,16 @@ impl State {
     /// Call this when there is a new [`accesskit::ActionRequest`].
     ///
     /// The result can be found in [`Self::egui_input`] and be extracted with [`Self::take_egui_input`].
-    #[cfg(feature = "accesskit")]
+    #[cfg(all(feature = "accesskit", not(all(target_os = "windows", __WINRT__))))]
     pub fn on_accesskit_action_request(&mut self, request: accesskit::ActionRequest) {
         self.egui_input
             .events
             .push(egui::Event::AccessKitActionRequest(request));
+    }
+
+    #[cfg(all(feature = "accesskit", target_os = "windows", __WINRT__))]
+    pub fn on_accesskit_action_request(&mut self, _request: egui::accesskit::ActionRequest) {
+        // AccessKit is intentionally a no-op on WinRT.
     }
 
     fn on_mouse_button_input(
@@ -901,9 +916,11 @@ impl State {
             events: _,                    // handled elsewhere
             mutable_text_under_cursor: _, // only used in eframe web
             ime,
+            #[cfg(all(feature = "accesskit", not(all(target_os = "windows", __WINRT__))))]
             accesskit_update,
             num_completed_passes: _,    // `egui::Context::run` handles this
             request_discard_reasons: _, // `egui::Context::run` handles this
+            ..
         } = platform_output;
 
         for command in commands {
@@ -954,7 +971,7 @@ impl State {
             self.ime_rect_px = None;
         }
 
-        #[cfg(feature = "accesskit")]
+        #[cfg(all(feature = "accesskit", not(all(target_os = "windows", __WINRT__))))]
         if let Some(accesskit) = self.accesskit.as_mut()
             && let Some(update) = accesskit_update
         {
