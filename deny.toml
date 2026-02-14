@@ -56,8 +56,10 @@ skip = [
   { name = "quick-xml" }, # old version via wayland-scanner
   { name = "redox_syscall" }, # old version via winit
   { name = "rustc-hash" }, # Small enough
+  { name = "smol_str" }, 
   { name = "thiserror" }, # ecosystem is in the process of migrating from 1.x to 2.x
   { name = "thiserror-impl" }, # same as above
+  { name = "winit" },
   { name = "windows-sys" }, # mostly hopeless to avoid
   { name = "zerocopy" }, # Small enough
 ]
